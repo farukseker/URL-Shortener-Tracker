@@ -1,0 +1,27 @@
+services:
+  api:
+    build: .
+    container_name: url_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/urlshort
+    restart: unless-stopped
+
+  db:
+    image: postgres:latest
+    container_name: url_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: urlshort
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "1000:5432"
+    restart: unless-stopped
+
+volumes:
+  pg_data:
