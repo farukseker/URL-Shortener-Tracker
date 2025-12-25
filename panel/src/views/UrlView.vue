@@ -1,19 +1,25 @@
 <template>
-    x
-    {{ url_data }}
+<section class="w-full flex justify-center h-screen absolute top-0 left-0 py-20 overflow-auto">
+    <article class="m-auto">
+        <UrlForm />
+    </article>
+</section>
+
 </template>
 
 <script setup>
-import axios from 'axios';
 import { onMounted, ref } from 'vue';
+import { useUrlStore } from '@/stores/url_form_store';
+import { storeToRefs } from "pinia";
+import UrlForm from '@/components/form/UrlForm.vue'
 
 const { url_code } = defineProps(['url_code'])
+const url_store = useUrlStore()
 
-const url_data = ref(null) 
+const { id, url, url_type, slug, categories } = storeToRefs(url_store)
 
 const load_url_data = async () => {
-    var r = await axios.get(`/admin/url`, {params: {code: url_code}})
-    url_data.value = r.data
+    url_store.load_url_data(await url_store.get_url(url_code))
 }
 
 onMounted(load_url_data)

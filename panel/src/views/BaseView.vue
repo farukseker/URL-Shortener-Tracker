@@ -7,8 +7,8 @@
 
   <article class="my-4 flex justify-between">
     <form class="flex gap-2">
-      <RouterLink class="btn btn-accent" :to="{'name': 'category-manage'}">
-        Add
+      <RouterLink class="btn btn-info text-white" :to="{'name': 'category-manage'}">
+        Manage
       </RouterLink>
       <input class="btn btn-square" type="reset" value="×" @click="selected_categories_ids = []" />
       <input 
@@ -51,7 +51,7 @@
         <tr v-for="(url, index) in url_list" v-bind:key="url.code">
           <th>{{ index + 1 }}</th>
           <td class="w-1/2">
-            <a :href="url.url" target="_blank" class="font-semibold underline text-accent">{{ url.url }}</a>
+            <a :href="url.url" target="_blank" class="font-semibold underline text-accent">{{ url.url?.substring(0, 80) }}{{ url.url.length > 80 ? '...':'' }}</a>
           </td>
           <td class="text-center cursor-pointer underline" :class="url.custom ? 'link-accent':'link-neutral'"  @click="copyCode(url.code)">
             <span v-if="copiedCode !== url.code">{{ url.code }}</span>
@@ -64,9 +64,16 @@
           </td>
           <td class="text-center" :class="url.click_count > 0 ? 'text-current': 'text-gray-500'">{{ url.click_count }}</td>
           <td class="text-center">
-            <div class="tooltip tooltip-bottom" data-tip="Image"><Icon v-if="url.preview_type === 'image'" :icon="faImage" /></div>
-            <div class="tooltip tooltip-bottom" data-tip="Video"><Icon v-if="url.preview_type === 'video'" :icon="faVideo" /></div>
-            <div class="tooltip tooltip-bottom" data-tip="Url"><Icon v-if="url.preview_type === 'url'" :icon="faLink" /></div>
+            <!-- <div class="tooltip tooltip-bottom" data-tip="Image"><Icon v-if="url.preview_type === 'image'" :icon="faImage" /></div> -->
+            <div class="tooltip tooltip-bottom tooltip-primary" v-if="url.preview_type === 'image'">
+              <div class="tooltip-content">
+                <span>image</span>
+                <img class="p-1 object-contain" width="200" height="200" :src="url.url">
+              </div>
+              <Icon :icon="faImage" />
+            </div>
+            <div class="tooltip tooltip-bottom tooltip-primary" data-tip="Video"><Icon v-if="url.preview_type === 'video'" :icon="faVideo" /></div>
+            <div class="tooltip tooltip-bottom tooltip-primary" data-tip="Url"><Icon v-if="url.preview_type === 'url'" :icon="faLink" /></div>
           </td>
           <td class="text-center cursor-pointer">
              <RouterLink class="btn btn-sm btn-ghost link-accent" :to="{
@@ -102,6 +109,8 @@ const url_list = ref([])
 const copiedCode = ref(null)
 const categories_list = ref([])
 
+const selected_categories_ids = ref([])
+
 const { copy } = useClipboard()
 
 const copyCode = (code) => {
@@ -113,10 +122,9 @@ const copyCode = (code) => {
 }
 
 const load_categories_list = async () => {
-    var r = await axios.get('/admin/category')
+    var r = await axios.get('/admin/category/')
     categories_list.value = r.data
 }
-
 
 onMounted(async () => {
   const r = await axios.get('/admin/list')

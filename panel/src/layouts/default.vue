@@ -1,17 +1,17 @@
 <template>
     <section class="h-screen">
-        <header class="navbar shadow-sm">
-            
-            <div class="container mx-auto flex">
+        <header class="navbar shadow-sm z-10 bg-base-100">
+            <div class="container mx-auto flex relative">
                 <div class="flex-none">
                     <button v-if="$route.name !== 'home'" @click="$router.back" class="btn btn-square btn-ghost">
                         <Icon :icon="faChevronLeft" />
                     </button>
                     <a class="btn btn-ghost text-xl" href="/">Ulrich</a>
                 </div>
-                <div class="flex-1 text-center my-auto">
-                    <h1 class="text-xl font-bold text-primary">{{ $route.meta.title}}</h1>
+                <div class="flex-1 flex absolute top-0 left-0 w-full h-full -z-10">
+                    <h1 class="text-xl font-bold text-primary m-auto">{{ $route.meta.title}}</h1>
                 </div>
+                <div class="w-full"></div>
                 <div class="flex-none">
                     <details class="dropdown dropdown-end">
                         <summary class="btn btn-ghost m-1">
