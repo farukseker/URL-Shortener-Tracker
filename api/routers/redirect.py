@@ -14,7 +14,6 @@ def redirect(
     url: UrlCacheModel | None = url_cache.get(code)
     if not url:
         raise HTTPException(status_code=404)
-
     background_tasks.add_task(
         save_url_action,
         request,

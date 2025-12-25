@@ -62,46 +62,31 @@ async def list_short_urls():
     async with AsyncSessionLocal() as db:
         stmt = (
             select(
-                ShortURL.id,
-                ShortURL.short_code,
-                ShortURL.long_url,
-                ShortURL.custom,
-                ShortURL.preview_type,
-                ShortURL.created_at,
+                ShortURL,
                 func.coalesce(func.sum(UrlVisitAction.count), 0).label("click_count"),
             )
-            .outerjoin(
-                UrlVisitAction,
-                UrlVisitAction.url_id == ShortURL.id,
-            )
-            .group_by(
-                ShortURL.id,
-                ShortURL.short_code,
-                ShortURL.long_url,
-                ShortURL.custom,
-                ShortURL.preview_type,
-                ShortURL.created_at,
-            )
+            .outerjoin(UrlVisitAction, UrlVisitAction.url_id == ShortURL.id)
+            .options(selectinload(ShortURL.categories))
+            .group_by(ShortURL.id)
         )
         result = await db.execute(stmt)
         return [
             {
-                "id": _id,
-                "code": code,
-                "url": url,
-                "custom": custom,
-                "preview_type": preview_type,
-                "created_at": created_at,
+                "id": url.id,
+                "code": url.short_code,
+                "url": url.long_url,
+                "custom": url.custom,
+                "preview_type": url.preview_type,
+                "created_at": url.created_at,
+                "categories": [c.id for c in url.categories],
                 "click_count": click_count,
             }
-            for _id, code, url, custom, preview_type, created_at, click_count in result.all()
+            for url, click_count in result.all()
         ]
 
 
 @router.get("/url")
 async def get_short_url(code: str):
-    print(code)
-
     async with AsyncSessionLocal() as db:
         stmt = (
             select(ShortURL)
@@ -113,7 +98,6 @@ async def get_short_url(code: str):
 
         if not short:
             raise HTTPException(status_code=404, detail="Not found")
-        print(short.categories)
 
         return {
             "id": short.id,
@@ -122,7 +106,6 @@ async def get_short_url(code: str):
             "url_type": short.preview_type,
             "custom": short.custom,
             "created_at": short.created_at,
-            # "categories": [{"id": c.id, "name": c.name} for c in short.categories]
             "categories": [c.id for c in short.categories]
         }
 

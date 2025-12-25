@@ -25,7 +25,7 @@
                 </div>
             </div>
         </header>
-        <article class="px-4 container mx-auto">
+        <article class="px-4 container mx-auto ">
              <RouterView />
         </article>
     </section>

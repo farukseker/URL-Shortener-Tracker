@@ -10,7 +10,6 @@
 <script setup>
 import UrlForm from '@/components/form/UrlForm.vue'
 import { useRouter } from "vue-router";
-import axios from 'axios'
 import { useUrlStore } from '@/stores/url_form_store';
 import { onMounted } from 'vue';
 
@@ -21,13 +20,12 @@ const router = useRouter()
 onMounted(url_store.flush_url_data)
 
 const save = async () => {
-    
     var r = await url_store.create_new_url()
-    // router.push({
-    //     name:'manage-url',
-    //     params: {
-    //         url_code: r.code,
-    //     }
-    // })
+    router.push({
+        name:'manage-url',
+        params: {
+            url_code: r.code,
+        }
+    })
 }
 </script>

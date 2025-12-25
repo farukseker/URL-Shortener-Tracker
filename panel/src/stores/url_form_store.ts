@@ -14,32 +14,28 @@ export const useUrlStore = defineStore('url_store', () => {
     const url: Ref<String | null> = ref(null)
     const url_type: Ref<String | null> = ref(null)
     const slug: Ref<String | null> = ref(null)
+    const pre_slug: Ref<String | null> = ref(null)
     // const categories: Ref<List[]> = ref([])
     const categories = ref<[]>([])
 
     const create_new_url = async (): Promise<Object> => {
-        console.log(categories.value)
         const r = await axios.post('/admin/create', {
             long_url: url.value,
             preview_type: url_type.value,
             custom_code: slug.value,
-            categories: categories.value
-            // categories: categories.value.map(c => ({
-            //     id: c.id,
-            //     name: c.name,
-            // })),
+            category_ids: categories.value
         })
         return r.data
 
     }
 
     const update_url = async (): Promise<void> => {
-        await axios.post('/admin/create', {
+        await axios.put('/admin/url', {
             id: id.value,
             long_url: url.value,
             preview_type: url_type.value,
             custom_code: slug.value,
-            categories: toRaw(categories.value),
+            category_ids: categories.value
         })
     }
 
@@ -51,6 +47,7 @@ export const useUrlStore = defineStore('url_store', () => {
     const get_url = async (code: String): Promise<Object> => {
         var r = await axios.get(`/admin/url`, {params: {code: code}})
         // r.data.categories = r.data.categories?.forEach(e => {return e.id})
+        pre_slug.value = r.data.code
         return r.data
     }
 
@@ -63,6 +60,7 @@ export const useUrlStore = defineStore('url_store', () => {
         url.value = payload.hasOwnProperty('url') ? payload.url : null
         url_type.value = payload.hasOwnProperty('url_type') ? payload.url_type : null
         slug.value = payload.hasOwnProperty('code') ? payload.code : null
+        pre_slug.value = payload.hasOwnProperty('code') ? payload.code : null
         categories.value = payload.hasOwnProperty('categories') ? payload.categories : []
     }
 
@@ -71,11 +69,12 @@ export const useUrlStore = defineStore('url_store', () => {
         url.value = null
         url_type.value = null
         slug.value = null
+        pre_slug.value = null
         categories.value = []
     }
 
     return { 
-        id, url, url_type, slug, categories,
+        id, url, url_type, slug, categories, pre_slug,
         create_new_url, update_url, save_url, get_url, delete_url, load_url_data, flush_url_data
     }
 })
