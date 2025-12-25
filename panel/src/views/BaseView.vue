@@ -31,9 +31,6 @@
         <RouterLink class="btn btn-accent" :to="{ name: 'add-url' }">
           Add
         </RouterLink>
-        <button class="btn btn-error">
-          Visit
-        </button>
       </div>
     </article>
 
@@ -83,8 +80,7 @@
               </td>
 
               <td
-                class="text-start cursor-pointer underline"
-                :class="url.custom ? 'link-accent' : 'link-neutral'"
+                class="text-start cursor-pointer underline link-info"
                 @click="copyCode(url.code)"
               >
                 <span v-if="copiedCode !== url.code">

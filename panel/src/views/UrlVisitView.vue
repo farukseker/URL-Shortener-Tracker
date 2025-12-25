@@ -7,7 +7,12 @@
         <div class="gird flex grid-cols-2 h-60">
             <div class="text-lg w-full">
                 <div class="mb-2">
-                    <button class="btn btn-primary">Edit</button>
+                    <RouterLink
+                    class="btn btn-primary"
+                    :to="{ name: 'manage-url', params: { url_code: url_data.code } }"
+                    >
+                    Edit
+                    </RouterLink>
                 </div>
                 <ul>
                     <li><strong>Url:</strong> {{ url_data.url }}</li>
@@ -123,10 +128,8 @@ import { faSearch, faImage, faVideo, faLink } from "@fortawesome/free-solid-svg-
 dayjs.extend(utc)
 dayjs.extend(localizedFormat)
 
-/* ------------------ PROPS ------------------ */
 const { url_id, url_code } = defineProps(["url_id", "url_code"])
 
-/* ------------------ HELPERS ------------------ */
 const humanReadable = iso =>
   dayjs.utc(iso).local().format("DD MMMM YYYY HH:mm")
 
@@ -137,7 +140,6 @@ const groupBy = (arr, fn) =>
     return a
   }, {})
 
-/* ------------------ STATE ------------------ */
 const visit_data = ref([])
 const url_data = ref([])
 const tab = ref("logs")
@@ -158,7 +160,6 @@ const get_url_data = async () => {
   url_data.value = r.data
 }
 
-/* ------------------ DATES ------------------ */
 const dates = computed(() =>
   visit_data.value.map(v => new Date(v.action_at))
 )
@@ -167,13 +168,11 @@ const years = computed(() =>
   [...new Set(dates.value.map(d => d.getFullYear()))].sort()
 )
 
-/* ------------------ AUTO TODAY ------------------ */
 const today = new Date()
 const selectedYear = ref(today.getFullYear())
 const selectedMonth = ref(String(today.getMonth() + 1))
 const selectedDay = ref(null)
 
-/* ------------------ CHART ------------------ */
 const chartOptions = ref({
   chart: {
     toolbar: { show: false },
@@ -201,7 +200,6 @@ const chartOptions = ref({
 
 const series = ref([{ name: "Visits", data: [] }])
 
-/* ------------------ CORE ------------------ */
 const updateChart = () => {
   const filtered = dates.value.filter(d =>
     d.getFullYear() === selectedYear.value &&
@@ -270,11 +268,10 @@ const updateChart = () => {
   }
 }
 
-/* ------------------ WATCHERS ------------------ */
+
 watch([visit_data, selectedYear, selectedMonth], updateChart)
 watch(selectedMonth, () => (selectedDay.value = null))
 
-/* ------------------ MOUNT ------------------ */
 onMounted(async () => {
   await get_url_visit_action_list()
   await get_url_data()
