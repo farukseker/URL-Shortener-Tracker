@@ -1,7 +1,7 @@
 <template>
 
-<section>
-    <article class="flex flex-col  gap-4 p-4">
+<section class="w-full flex justify-center h-screen absolute top-0 left-0 pt-20 overflow-auto">
+    <article class="flex flex-col gap-4 p-4 w-full md:w-2/3">
     <fieldset class="fieldset bg-base-200 rounded-box w-full p-4 shadow-xl border border-primary">
         <legend class="fieldset-legend">Url details ({{ url_id }})</legend>
         <div class="gird flex grid-cols-2 h-60">
@@ -37,7 +37,7 @@
         </div>
     </fieldset>
 
-    <hr>
+    <hr class="mt-3">
 
     <fieldset class="fieldset bg-base-200 rounded-box w-full p-4 shadow-xl border border-primary">
         <legend class="fieldset-legend">Visit details ({{ visit_data.length }})</legend>
@@ -52,23 +52,29 @@
                 </select>
 
                 <select v-model="selectedMonth" class="select select-bordered select-sm">
-                <option value="all">All</option>
+                <option :value="0">All</option>
                 <option v-for="m in 12" :key="m" :value="m">
                     {{ String(m).padStart(2,'0') }}
                 </option>
                 </select>
             </div>
             <Chart
-                type="line"
-                height="350"
-                :options="chartOptions"
-                :series="series"
+              :key="chartKey"
+              type="line"
+              height="350"
+              :options="chartOptions"
+              :series="series"
             />
         </div>
         <div v-if="tab === 'logs'">
             <label class="input w-full border-0 border-b shadow outline-0 my-4">
                 <Icon :icon="faSearch" />
-                <input class="grow" placeholder="You can search IP | Provider | Countries, | Cities, " type="text">
+                <input
+                  v-model="searchQuery"
+                  class="grow"
+                  placeholder="IP | Provider | Country | City"
+                  type="text"
+                />
             </label>
             <div class="overflow-x-auto max-h-80">
                 <table class="table table-zebra">
@@ -85,7 +91,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <template v-for="(visit, index) in visit_data" :key="index">
+                    <template v-for="(visit, index) in filteredVisits" :key="index">
                     <tr class="text-center" :class="2%index === 0 ? 'bg-base-300': ''">
                         <th>{{ index + 1 }}</th>
                         <td>{{ visit.country ? visit.country:'-' }}</td>
@@ -142,7 +148,7 @@ const groupBy = (arr, fn) =>
 
 const visit_data = ref([])
 const url_data = ref([])
-const tab = ref("logs")
+const tab = ref("charts")
 
 /* ------------------ FETCH ------------------ */
 const get_url_visit_action_list = async () => {
@@ -167,65 +173,94 @@ const dates = computed(() =>
 const years = computed(() =>
   [...new Set(dates.value.map(d => d.getFullYear()))].sort()
 )
-
 const today = new Date()
+
 const selectedYear = ref(today.getFullYear())
-const selectedMonth = ref(String(today.getMonth() + 1))
+const selectedMonth = ref(today.getMonth() + 1) // 0 = all
 const selectedDay = ref(null)
+
+const isDarkTheme = () =>  document.body.getAttribute("data-theme") === "dark"
 
 const chartOptions = ref({
   chart: {
     toolbar: { show: false },
+    foreColor: "#374151",
     events: {
       dataPointSelection(_, ctx, { dataPointIndex }) {
         const x = ctx.opts.xaxis.categories[dataPointIndex]
 
-        // month → day
-        if (selectedMonth.value === "all") {
+        if (selectedMonth.value === 0) {
           selectedMonth.value = Number(x)
           return
         }
 
-        // day → hour
         if (!selectedDay.value) {
           selectedDay.value = Number(x)
         }
       }
     }
   },
+  theme: {
+    mode: "light"
+  },
   stroke: { curve: "smooth" },
   xaxis: { categories: [] },
   annotations: { xaxis: [] }
 })
 
+const chartKey = ref(0)
+
+const applyChartTheme = () => {
+  if (tab.value !== "charts") return
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark"
+
+  chartOptions.value = {
+    ...chartOptions.value,
+    chart: {
+      ...chartOptions.value.chart,
+      foreColor: isDark ? "#e5e7eb" : "#374151"
+    },
+    theme: {
+      mode: isDark ? "dark" : "light"
+    }
+  }
+
+  chartKey.value++
+}
+watch(tab, val => {
+  if (val === "charts") {
+    nextTick(() => applyChartTheme())
+  }
+})
+
 const series = ref([{ name: "Visits", data: [] }])
 
 const updateChart = () => {
+  selectedDay.value ??= null
+
   const filtered = dates.value.filter(d =>
     d.getFullYear() === selectedYear.value &&
-    (selectedMonth.value === "all" ||
-      d.getMonth() + 1 === Number(selectedMonth.value))
+    (selectedMonth.value === 0 ||
+      d.getMonth() + 1 === selectedMonth.value)
   )
 
-  if (!filtered.length && selectedMonth.value !== "all") {
-    selectedMonth.value = "all"
+  if (!filtered.length) {
+    chartOptions.value.xaxis.categories = []
+    series.value = [{ name: "Visits", data: [] }]
     return
   }
 
-  // HOURLY (drill-down)
+  // HOURLY
   if (selectedDay.value) {
-    const hourly = filtered.filter(
-      d => d.getDate() === selectedDay.value
-    )
+    const grouped = filtered
+      .filter(d => d.getDate() === selectedDay.value)
+      .reduce((a, d) => {
+        const h = String(d.getHours()).padStart(2, "0")
+        a[h] = (a[h] || 0) + 1
+        return a
+      }, {})
 
-    const grouped = groupBy(hourly, d =>
-      String(d.getHours()).padStart(2, "0")
-    )
-
-    const categories = Object.keys(grouped)
-      .map(Number)
-      .sort((a, b) => a - b)
-      .map(h => String(h).padStart(2, "0"))
+    const categories = Object.keys(grouped).sort()
 
     chartOptions.value.xaxis.categories = categories
     chartOptions.value.annotations.xaxis = []
@@ -234,46 +269,76 @@ const updateChart = () => {
   }
 
   // DAILY / MONTHLY
-  const grouped =
-    selectedMonth.value === "all"
-      ? groupBy(filtered, d =>
-          String(d.getMonth() + 1).padStart(2, "0")
-        )
-      : groupBy(filtered, d =>
-          String(d.getDate()).padStart(2, "0")
-        )
+  const grouped = filtered.reduce((a, d) => {
+    const k =
+      selectedMonth.value === 0
+        ? String(d.getMonth() + 1).padStart(2, "0")
+        : String(d.getDate()).padStart(2, "0")
 
-  const categories = Object.keys(grouped)
-    .map(Number)
-    .sort((a, b) => a - b)
-    .map(n => String(n).padStart(2, "0"))
+    a[k] = (a[k] || 0) + 1
+    return a
+  }, {})
+
+  const categories = Object.keys(grouped).sort()
 
   chartOptions.value.xaxis.categories = categories
   series.value = [{ name: "Visits", data: categories.map(c => grouped[c]) }]
 
   // TODAY LINE
   chartOptions.value.annotations.xaxis = []
-  if (selectedMonth.value !== "all") {
+  if (selectedMonth.value !== 0) {
     const todayDay = String(today.getDate()).padStart(2, "0")
     if (categories.includes(todayDay)) {
       chartOptions.value.annotations.xaxis.push({
         x: todayDay,
         borderColor: "#ef4444",
-        label: {
-          text: "Today",
-          style: { background: "#ef4444", color: "#fff" }
-        }
+        label: { text: "Today" }
       })
     }
   }
 }
 
+const searchQuery = ref("")
+
+const filteredVisits = computed(() => {
+  if (!searchQuery.value) return visit_data.value
+
+  const q = searchQuery.value.toLowerCase()
+
+  return visit_data.value.filter(v =>
+    [
+      v.ip_address,
+      v.ip_provider,
+      v.country,
+      v.city
+    ]
+      .filter(Boolean)
+      .some(field =>
+        field.toLowerCase().includes(q)
+      )
+  )
+})
 
 watch([visit_data, selectedYear, selectedMonth], updateChart)
-watch(selectedMonth, () => (selectedDay.value = null))
+watch([selectedYear, selectedMonth], () => (selectedDay.value = null))
+
+
+const updateChartTheme = () => {
+  chartOptions.value.foreColor =
+    isDarkTheme() ? "#e5e7eb" : "#374151"
+}
+
+const observer = new MutationObserver(applyChartTheme)
+
+observer.observe(document.body, {
+  attributes: true,
+  attributeFilter: ["data-theme"]
+})
+
 
 onMounted(async () => {
   await get_url_visit_action_list()
   await get_url_data()
+  applyChartTheme()
 })
 </script>
