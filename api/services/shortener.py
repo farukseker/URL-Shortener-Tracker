@@ -12,5 +12,6 @@ async def create_short(db, long_url, custom_code=None, preview_type=None) -> Sho
         short_code=custom_code or generate_short_code(),
     )
     db.add(short)
+    await db.flush()
     url_cache[short.short_code] = UrlCacheModel(id=short.id, url=long_url)
     return short

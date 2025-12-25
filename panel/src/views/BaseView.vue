@@ -99,8 +99,18 @@
                 </span>
               </td>
 
-              <td class="text-center" :class="url.click_count > 0 ? '' : 'text-gray-500'">
-                {{ url.click_count }}
+              <td 
+                class="text-center cursor-pointer"
+                :class="url.click_count > 0 ? '' : 'text-gray-500'"
+                @click="$router.push({
+                  name: 'analytical-view',
+                  params: {
+                    url_id: url.id,
+                    url_code: url.code
+                  }
+                })"
+                >
+                {{ url.click_count }} <Icon :icon="faEye" />
               </td>
 
               <td class="text-center">
@@ -150,7 +160,7 @@ import axios from 'axios'
 import { ref, onMounted, computed, watch } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { RouterLink } from 'vue-router'
-import { faSearch, faImage, faVideo, faLink } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faImage, faVideo, faLink, faEye } from '@fortawesome/free-solid-svg-icons'
 import { useUrlStore } from '@/stores/url_form_store';
 import { storeToRefs } from "pinia";
 

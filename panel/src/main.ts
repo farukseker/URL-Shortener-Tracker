@@ -6,6 +6,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import App from './App.vue'
 import router from './router'
+import VueApexCharts from "vue3-apexcharts";
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL
 
@@ -20,5 +21,6 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 app.component('Icon', FontAwesomeIcon)
+app.component('Chart', VueApexCharts)
 
 app.mount('#app')

@@ -36,7 +36,19 @@ const router = createRouter({
           name: 'category-manage',
           component: () => import('../views/CategoryManage.vue'),
           meta: { title: 'Manage Categories' }
-
+        },
+        {
+          path: '/analytical/:url_id/:url_code',
+          name: 'analytical-view',
+          props:true,
+          component: () => import('../views/UrlVisitView.vue'),
+          meta: { title: 'Url Visit Actions' }
+        },
+        {
+          path: '/test',
+          name: 'test',
+          component: () => import('../views/TextView.vue'),
+          meta: { title: '- TEST -' }
         }
       ]
 

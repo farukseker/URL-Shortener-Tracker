@@ -11,6 +11,7 @@ from routers.redirect import router as redirect_router
 # from routers.shorten import router as shorten_router
 from routers.admin import router as admin_router
 from routers.category import router as category_router
+from routers.analytical import router as analytical_router
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -44,6 +45,7 @@ app.add_middleware(
 app.include_router(redirect_router)
 # app.include_router(shorten_router)
 app.include_router(admin_router)
+app.include_router(analytical_router)
 app.include_router(category_router)
 
 

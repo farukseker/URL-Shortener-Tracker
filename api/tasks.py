@@ -1,5 +1,6 @@
-from sqlalchemy import func
-from sqlalchemy.dialects.postgresql import insert
+from datetime import timedelta
+from sqlalchemy import select, update
+from sqlalchemy.sql import func
 from db import AsyncSessionLocal
 from models import UrlVisitAction
 from utils import get_client_ip, get_ip_data
@@ -19,26 +20,47 @@ async def save_url_action(
     ip = get_client_ip(request)
     ip_data = await get_ip_data(ip)
 
-    stmt = insert(UrlVisitAction).values(
-        url_id=url_id,
-        ip_address=ip,
-        ip_host=ip_data.get("host"),
-        ip_provider=ip_data.get("provider"),
-        country=ip_data.get("country"),
-        city=ip_data.get("city"),
-        geo_data=ip_data,
-        user_agent=user_agent,
-        count=1,
-    ).on_conflict_do_update(
-        constraint="uq_url_ip",
-        set_={
-            "count": UrlVisitAction.count + 1,
-            "action_at": func.now(),
-        },
-    )
-
     async with AsyncSessionLocal() as session:
-        await session.execute(stmt)
+        one_hour_ago = func.now() - timedelta(hours=1)
+
+        stmt = (
+            select(UrlVisitAction)
+            .where(
+                UrlVisitAction.url_id == url_id,
+                UrlVisitAction.ip_address == ip,
+                UrlVisitAction.action_at >= one_hour_ago,
+            )
+            .order_by(UrlVisitAction.action_at.desc())
+            .limit(1)
+        )
+
+        result = await session.execute(stmt)
+        action = result.scalar_one_or_none()
+
+        if action:
+            await session.execute(
+                update(UrlVisitAction)
+                .where(UrlVisitAction.id == action.id)
+                .values(
+                    count=UrlVisitAction.count + 1,
+                    action_at=func.now(),
+                )
+            )
+        else:
+            session.add(
+                UrlVisitAction(
+                    url_id=url_id,
+                    ip_address=ip,
+                    ip_host=ip_data.get("host"),
+                    ip_provider=ip_data.get("provider"),
+                    country=ip_data.get("country"),
+                    city=ip_data.get("city"),
+                    geo_data=ip_data,
+                    user_agent=user_agent,
+                    count=1,
+                )
+            )
+
         await session.commit()
 
 
