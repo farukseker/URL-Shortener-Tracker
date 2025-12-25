@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from fastapi.responses import RedirectResponse
-from cache import url_cache
+from cache import url_cache, UrlCacheModel
 from tasks import save_url_action, is_bot_ua
 
 router = APIRouter()
@@ -11,16 +11,16 @@ def redirect(
     request: Request,
     background_tasks: BackgroundTasks,
 ):
-    url = url_cache.get(code)
+    url: UrlCacheModel | None = url_cache.get(code)
     if not url:
         raise HTTPException(status_code=404)
 
     background_tasks.add_task(
         save_url_action,
         request,
-        url,
+        url.id,
         request.headers.get("user-agent", ""),
         skip_analytics=is_bot_ua(request),
     )
 
-    return RedirectResponse(url)
+    return RedirectResponse(url.url)

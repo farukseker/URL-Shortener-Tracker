@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from db import AsyncSessionLocal, engine
 from models import ShortURL
-from cache import url_cache
+from cache import url_cache, UrlCacheModel
 from db_init import init_db
 
 from routers.redirect import router as redirect_router
@@ -22,10 +22,10 @@ async def lifespan(app: FastAPI):
 
         async with AsyncSessionLocal() as db:
             result = await db.execute(
-                select(ShortURL.short_code, ShortURL.long_url)
+                select(ShortURL.short_code, ShortURL.long_url, ShortURL.id)
             )
-            for code, url in result.all():
-                url_cache[code] = url
+            for code, url, _id in result.all():
+                url_cache[code] = UrlCacheModel(id=_id, url=url)
     except Exception as e:
         print("Startup skipped:", e)
     yield

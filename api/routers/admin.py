@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, update, delete, func, insert
 from sqlalchemy.orm import selectinload
-from models import ShortURL, UrlVisitAction, Category
+from models import ShortURL, UrlVisitAction, Category, short_url
 from models.association import short_url_categories
 from db import AsyncSessionLocal
 from services.shortener import create_short
 from security import admin_required
-import schemes as sc 
+import schemes as sc
+from typing import Optional, Literal, Any
 
 router = APIRouter(
     prefix="/admin",
@@ -61,6 +62,7 @@ async def list_short_urls():
     async with AsyncSessionLocal() as db:
         stmt = (
             select(
+                ShortURL.id,
                 ShortURL.short_code,
                 ShortURL.long_url,
                 ShortURL.custom,
@@ -70,9 +72,10 @@ async def list_short_urls():
             )
             .outerjoin(
                 UrlVisitAction,
-                UrlVisitAction.url == ShortURL.short_code,
+                UrlVisitAction.url_id == ShortURL.id,
             )
             .group_by(
+                ShortURL.id,
                 ShortURL.short_code,
                 ShortURL.long_url,
                 ShortURL.custom,
@@ -83,6 +86,7 @@ async def list_short_urls():
         result = await db.execute(stmt)
         return [
             {
+                "id": _id,
                 "code": code,
                 "url": url,
                 "custom": custom,
@@ -90,12 +94,14 @@ async def list_short_urls():
                 "created_at": created_at,
                 "click_count": click_count,
             }
-            for code, url, custom, preview_type, created_at, click_count in result.all()
+            for _id, code, url, custom, preview_type, created_at, click_count in result.all()
         ]
 
 
 @router.get("/url")
 async def get_short_url(code: str):
+    print(code)
+
     async with AsyncSessionLocal() as db:
         stmt = (
             select(ShortURL)
@@ -107,36 +113,37 @@ async def get_short_url(code: str):
 
         if not short:
             raise HTTPException(status_code=404, detail="Not found")
+        print(short.categories)
 
         return {
+            "id": short.id,
             "code": short.short_code,
             "url": short.long_url,
+            "url_type": short.preview_type,
             "custom": short.custom,
             "created_at": short.created_at,
-            "categories": [{"id": c.id, "name": c.name} for c in short.categories]
+            # "categories": [{"id": c.id, "name": c.name} for c in short.categories]
+            "categories": [c.id for c in short.categories]
         }
 
 
 @router.put("/url")
-async def update_short_url(
-    code: str,
-    long_url: str,
-    category_ids: list[int] | None = None
-):
+async def update_short_url(payload: sc.ShortUpdate):
     async with AsyncSessionLocal() as db:
         stmt = (
             select(ShortURL)
-            .where(ShortURL.short_code == code)
+            .where(ShortURL.id == payload.id)
             .options(selectinload(ShortURL.categories))
         )
         short = (await db.execute(stmt)).scalar_one_or_none()
         if not short:
             raise HTTPException(status_code=404, detail="Not found")
 
-        short.long_url = long_url
+        short.long_url = payload.long_url
+        short.short_code = payload.custom_code
 
-        if category_ids is not None:
-            result = await db.execute(select(Category).where(Category.id.in_(category_ids)))
+        if payload.category_ids is not None:
+            result = await db.execute(select(Category).where(Category.id.in_(payload.category_ids)))
             short.categories = result.scalars().all()
 
         db.add(short)

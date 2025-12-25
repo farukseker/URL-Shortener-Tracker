@@ -14,13 +14,13 @@ from .base import Base
 class UrlVisitAction(Base):
     __tablename__ = "url_visit_actions"
     __table_args__ = (
-        UniqueConstraint("url", "ip_address", name="uq_url_ip"),
+        UniqueConstraint("url_id", "ip_address", name="uq_url_ip"),
         Index("ix_visit_country", "country"),
         Index("ix_visit_city", "city"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    url: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    url_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
     ip_address: Mapped[str] = mapped_column(String(45), nullable=False)
 
     ip_host: Mapped[str | None] = mapped_column(String)

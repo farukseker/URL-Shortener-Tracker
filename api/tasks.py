@@ -9,7 +9,7 @@ from config import BOT_UA_REGEX
 
 async def save_url_action(
     request,
-    url: str,
+    url_id: int,
     user_agent: str,
     skip_analytics: bool = False,
 ):
@@ -20,7 +20,7 @@ async def save_url_action(
     ip_data = await get_ip_data(ip)
 
     stmt = insert(UrlVisitAction).values(
-        url=url,
+        url_id=url_id,
         ip_address=ip,
         ip_host=ip_data.get("host"),
         ip_provider=ip_data.get("provider"),
