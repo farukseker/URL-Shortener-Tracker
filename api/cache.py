@@ -23,4 +23,7 @@ class UrlCache:
     def __setitem__(self, code: str, url: str):
         self.url_cache[code] = url
 
+    def pop(self, code: str, default=None):
+        return self.url_cache.pop(code, default)
+    
 url_cache = UrlCache()

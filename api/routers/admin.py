@@ -148,7 +148,7 @@ async def delete_short_url(code: str):
         short = (await db.execute(stmt)).scalar_one_or_none()
         if not short:
             raise HTTPException(status_code=404, detail="Not found")
-        url_cache.pop(code, None)
+        url_cache.pop(short.short_code, None)
         await db.delete(short)
         await db.commit()
         return {"status": "deleted"}
