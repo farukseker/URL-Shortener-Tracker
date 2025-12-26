@@ -8,6 +8,7 @@ from services.shortener import create_short
 from security import admin_required
 import schemes as sc
 from typing import Optional, Literal, Any
+from cache import url_cache, UrlCacheModel
 
 router = APIRouter(
     prefix="/admin",
@@ -131,6 +132,12 @@ async def update_short_url(payload: sc.ShortUpdate):
 
         db.add(short)
         await db.commit()
+        await db.refresh(short)
+
+        url_cache[short.short_code] = UrlCacheModel(
+            id=short.id,
+            url=short.long_url,
+        )
         return {"status": "updated"}
 
 
