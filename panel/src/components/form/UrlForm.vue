@@ -78,9 +78,7 @@ import { useUrlStore } from '@/stores/url_form_store';
 import { storeToRefs } from "pinia";
 
 const url_store = useUrlStore()
-
 const { id, url, url_type, slug, categories } = storeToRefs(url_store)
-
 const emit = defineEmits(['on_save', 'on_delete'])
 
 

@@ -26,7 +26,8 @@
             </div>
         </header>
         <article class="px-4 container mx-auto ">
-             <RouterView />
+            <Notifications position="bottom right" :max="5" />
+            <RouterView />
         </article>
     </section>
 </template>
@@ -36,6 +37,7 @@ import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { faEllipsis, faBars, faChevronLeft } from '@fortawesome/free-solid-svg-icons'
 import { useThemeStore } from '@/stores/theme'
+import { Notifications } from '@kyvg/vue3-notification'
 
 const themeStore = useThemeStore()
 

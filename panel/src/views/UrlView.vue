@@ -13,6 +13,9 @@ import { useUrlStore } from '@/stores/url_form_store';
 import { storeToRefs } from "pinia";
 import UrlForm from '@/components/form/UrlForm.vue'
 import { useRouter } from 'vue-router';
+import { useNotification } from '@kyvg/vue3-notification';
+
+const { notify } = useNotification()
 
 const { url_code } = defineProps(['url_code'])
 const router = useRouter()
@@ -25,6 +28,11 @@ const load_url_data = async () => {
 }
 
 const on_save = async () => {
+    notify({
+        title: 'Success',
+        text: 'Url saved successfully',
+        type: 'success',
+    })
     await url_store.update_url()
     router.push({
         name: 'manage-url',
@@ -34,6 +42,11 @@ const on_save = async () => {
     })
 } 
 const on_delete = async () => {
+    notify({
+        title: 'Success',
+        text: 'Url deleted with successfully',
+        type: 'success',
+    })
     await url_store.delete_url(url_code)
     router.push('/')
 } 
