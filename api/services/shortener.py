@@ -12,7 +12,7 @@ async def create_short(
     custom_code: str | None = None,
     preview_type: str | None = None,
 ) -> ShortURL:
-    async with db.no_autoflush:
+    with db.no_autoflush:
         short = ShortURL(
             long_url=long_url,
             custom=bool(custom_code),
