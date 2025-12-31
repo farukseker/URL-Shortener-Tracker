@@ -1,5 +1,6 @@
 # URL Shortener & Tracker
 
+![app banner](.previews/fast-url-shortener-2.png)
 
 |![app view](.previews/chart.png)|A lightweight URL shortening service with built‑in analytics. Create short links, track clicks in real time, and understand your traffic without external tools.|
 |---|---
