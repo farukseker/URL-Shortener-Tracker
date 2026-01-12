@@ -107,8 +107,19 @@ npm run dev
 
 Environment variables:
 
-* `BASE_URL`
+/api/.env # for example /panel/.env.example
+```bash
+ADMIN_TOKEN=
+DATABASE_URL=
+API_QUERY_HOST=
+API_QUERY_PATH=
+```
 
+/panel/.env # for example /panel/.env.example
+```
+VITE_ADMIN_TOKEN=
+VITE_API_URL=
+```
 
 ## Roadmap
 
