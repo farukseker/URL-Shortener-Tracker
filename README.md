@@ -99,7 +99,7 @@ Returns click count, timestamps, referrers, devices, etc.
 ## Setup (Local)
 
 ```bash
-git clone [https://github.com/yourname/url-shortener](https://github.com/farukseker/Fast-URL-Shortener-Tracker)
+git clone https://github.com/farukseker/Fast-URL-Shortener-Tracker
 cd url-shortener
 npm install
 npm run dev
