@@ -19,38 +19,33 @@ def clean_text(value: str | ResultSet[Tag]) -> str:
     return value.strip()
 
 
-async def get_ip_data(ip: str = '') -> dict:
-    result = {}
-    url = f"{API_QUERY_HOST}{API_QUERY_PATH}{ip}"
-
+async def get_ip_data(ip: str = "") -> dict:
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(url)
+            r = await client.get(f"{API_QUERY_HOST}{ip}")
+            r.raise_for_status()
+            data = r.json()
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        if data.get("status") != "success":
+            return {}
 
-        ip_provider = soup.find('div', {'class': 'query-ip-location-content-info'})
-        if not ip_provider:
-            return result
-
-        info_blocks = ip_provider.find_all('div')
-        result['host'] = clean_text(info_blocks[0])
-        result['provider'] = clean_text(info_blocks[1])
-
-        for li in soup.find_all('li'):
-            spans = li.find_all('span')
-            if len(spans) >= 3:
-                key = clean_text(spans[1])
-                value = clean_text(spans[2])
-                result[key] = value
+        return {
+            "ip": data.get("query"),
+            "country": data.get("country"),
+            "countryCode": data.get("countryCode"),
+            "region": data.get("regionName"),
+            "city": data.get("city"),
+            "lat": data.get("lat"),
+            "lon": data.get("lon"),
+            "isp": data.get("isp"),
+            "org": data.get("org"),
+            "asn": data.get("as"),
+        }
 
     except Exception as err:
-        print('ip q err')
-        print(err)
-
-    return result
-
-
+        print("ip q err:", err)
+        return {}
+    
 
 if __name__ == '__main__':
     import asyncio
