@@ -95,7 +95,7 @@
                     <tr class="text-center" :class="2%index === 0 ? 'bg-base-300': ''">
                         <th>{{ index + 1 }}</th>
                         <td>{{ visit.country ? visit.country:'-' }}</td>
-                        <td>{{ visit.geo_data?.regionName ? visit.geo_data?.regionName:'-' }}/{{ visit.geo_data?.city ? visit.geo_data?.city:'-' }}</td>
+                        <td>{{ visit.geo_data?.region ? visit.geo_data?.region:'-' }}/{{ visit.geo_data?.city ? visit.geo_data?.city:'-' }}</td>
                         <td>{{ visit.ip_address ? visit.ip_address:'-' }}</td>
                         <td>{{ visit.count }}</td>
                         <td>{{ humanReadable(visit.action_at) }}</td>
