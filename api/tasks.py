@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from sqlalchemy import select, update
 from sqlalchemy.sql import func
@@ -52,7 +53,7 @@ async def save_url_action(
                     url_id=url_id,
                     ip_address=ip,
                     ip_host=ip_data.get("host"),
-                    ip_provider=ip_data.get("provider"),
+                    ip_provider=ip_data.get("isp"),
                     country=ip_data.get("country"),
                     city=ip_data.get("city"),
                     geo_data=ip_data,

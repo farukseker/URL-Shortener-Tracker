@@ -1,7 +1,7 @@
 <template>
 
-<section class="w-full flex justify-center h-screen absolute top-0 left-0 pt-20 overflow-auto">
-    <article class="flex flex-col gap-4 p-4 w-full md:w-2/3">
+<section class="w-full flex justify-center h-screen absolute top-0 left-0 pt-10 mx-auto overflow-auto ">
+  <article class="flex flex-col gap-4 p-4 w-full md:w-2/3 mt-10">
     <fieldset class="fieldset bg-base-200 rounded-box w-full p-4 shadow-xl border border-primary">
         <legend class="fieldset-legend">Url details ({{ url_id }})</legend>
         <div class="gird flex grid-cols-2 h-60">
@@ -39,7 +39,7 @@
 
     <hr class="mt-3">
 
-    <fieldset class="fieldset bg-base-200 rounded-box w-full p-4 shadow-xl border border-primary">
+    <fieldset class="fieldset bg-base-200 rounded-box w-full p-4 shadow-xl border border-primary mb-20">
         <legend class="fieldset-legend">Visit details ({{ visit_data.length }})</legend>
         <div role="tablist" class="tabs tabs-border">
             <a role="tab" class="tab" :class="tab === 'charts' ? 'tab-active':''" @click="tab='charts'">Chart's</a>
@@ -76,7 +76,7 @@
                   type="text"
                 />
             </label>
-            <div class="overflow-x-auto max-h-80">
+            <div class="overflow-x-auto">
                 <table class="table table-zebra">
                 <thead class="sticky top-0 z-10 bg-base-100">
                     <tr>
@@ -95,7 +95,7 @@
                     <tr class="text-center" :class="2%index === 0 ? 'bg-base-300': ''">
                         <th>{{ index + 1 }}</th>
                         <td>{{ visit.country ? visit.country:'-' }}</td>
-                        <td>{{ visit.city ? visit.city:'-' }}</td>
+                        <td>{{ visit.geo_data?.regionName ? visit.geo_data?.regionName:'-' }}/{{ visit.geo_data?.city ? visit.geo_data?.city:'-' }}</td>
                         <td>{{ visit.ip_address ? visit.ip_address:'-' }}</td>
                         <td>{{ visit.count }}</td>
                         <td>{{ humanReadable(visit.action_at) }}</td>
@@ -103,24 +103,37 @@
                             <span class="">{{ visit.show_detail ? 'Hide':'Details'}}</span>
                         </td>
                     </tr>
-                    <tr v-if="visit.show_detail">
-                        <td class="shadow" :colspan="7">
-                            <ul>
-                                <li><strong>Provider: </strong>{{visit.isp}}</li>
-                                <li><strong>Provider Name: </strong>{{visit.org}}</li>
-                                <li><strong>Post Code: </strong>{{visit.zip}}</li>
-                                <li><strong>User Agent: </strong>{{visit.user_agent}}</li>
-                            </ul> 
-                        </td>
-                    </tr>
+                    <template v-if="visit.show_detail">
+                      <tr>
+                          <td class="shadow" :colspan="7">
+                              <ul>
+                                  <li><strong>Provider: </strong>{{visit.geo_data.isp}}</li>
+                                  <li><strong>Provider Name: </strong>{{visit.geo_data.org}}</li>
+                                  <li><strong>Post Code: </strong>{{visit.geo_data.zip}}</li>
+                                  <li><strong>User Agent: </strong>{{visit.user_agent}}</li>
+                              </ul> 
+                          </td>
+                      </tr>
+                      <tr>
+                          <td class="shadow" :colspan="7">
+                            <VisitMap
+                              v-if="visit.geo_data?.lat && visit.geo_data?.lon"
+                              :lat="visit.geo_data.lat"
+                              :lon="visit.geo_data.lon"
+                            />
+                            <span v-else>- No geo location -</span>
+                          </td>
+                      </tr>
                     </template>
-
+                  </template>
                 </tbody>
                 </table>
             </div>
         </div>
     </fieldset>
-    </article>
+
+    <div class="min-h-4"></div>
+  </article>
 </section>
 </template>
 
@@ -132,6 +145,7 @@ import utc from "dayjs/plugin/utc"
 import localizedFormat from "dayjs/plugin/localizedFormat"
 import Chart from "vue3-apexcharts"
 import { faSearch, faImage, faVideo, faLink } from "@fortawesome/free-solid-svg-icons"
+import VisitMap from "@/components/VisitMap.vue"
 
 dayjs.extend(utc)
 dayjs.extend(localizedFormat)

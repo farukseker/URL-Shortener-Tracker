@@ -11,6 +11,6 @@ API_QUERY_PATH = os.getenv("API_QUERY_PATH")
 
 
 BOT_UA_REGEX = re.compile(
-    r"bot|crawler|spider|crawling|slurp|bingpreview|facebookexternalhit",
+    r"bot|crawler|spider|crawling|slurp|bingpreview|facebookexternalhit|github",
     re.IGNORECASE,
 )
