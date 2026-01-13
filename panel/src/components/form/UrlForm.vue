@@ -63,12 +63,14 @@
 
         <label>Preview</label>
         <img class="object-cover" v-if="url_type === 'image'" :src="url">
-        <VideoPreview v-else-if="url_type === 'video' && url && url.includes('youtube') && url.includes('embed')" :url="url" />
+        <VideoPreview v-else-if="url_type === 'video' && url" :url="url.includes('youtu') ? provide_embed_url_for_any_yotube_urls(url) : url" />
         <a class="font-semibold underline link-accent text-wrap" target="_blank" :href="url">{{ url }}</a>
     </fieldset>
 </template>
 
 <script setup>
+//07aN0rFRe8Y
+
 import VideoPreview from '@/components/VideoPreview.vue'
 import { faChain, faLink, faSlash, faQuestion } from '@fortawesome/free-solid-svg-icons'
 import { onMounted, ref, watch } from 'vue'
@@ -77,13 +79,23 @@ import axios from 'axios'
 import { useUrlStore } from '@/stores/url_form_store';
 import { storeToRefs } from "pinia";
 
+
+
+const provide_embed_url_for_any_yotube_urls = youtube_url => {
+    if (youtube_url.includes('embed')){
+        return youtube_url
+    } else {
+        return `https://www.youtube.com/embed/${youtube_url.replace('https://www.youtube.com/watch?v=v', '').replace('https://youtu.be/', '')}`
+    }
+}
+
+
 const url_store = useUrlStore()
 const { id, url, url_type, slug, categories } = storeToRefs(url_store)
 const emit = defineEmits(['on_save', 'on_delete'])
 
 
 const show_delete_confirm = ref(false)
-
 const is_correct = ref(false)
 const url_list = ref([])
 const categories_list = ref([])
