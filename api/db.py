@@ -3,7 +3,7 @@ from sqlalchemy.orm import DeclarativeBase
 from config import DATABASE_URL
 
 
-DATABASE_URL = 'postgresql+asyncpg://postgres:postgres@localhost:1000/urlshort'
+# DATABASE_URL = 'postgresql+asyncpg://postgres:postgres@localhost:1000/urlshort'
 
 engine = create_async_engine(
     DATABASE_URL,
